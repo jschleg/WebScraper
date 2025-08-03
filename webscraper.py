@@ -12,7 +12,10 @@ import os
 import subprocess
 
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(
+    base_url="http://127.0.0.1:1234/v1",
+    api_key="not-needed"  
+)
 
 out_dir = "output\\"
 
@@ -124,9 +127,7 @@ def writeLinkList(linkDataList):
 
 
 def saveResult(result_text, base_name):
-    # Analyse speichern
     result_filename = os.path.join(results_dir, f"{base_name}_analysis.md")
-
     with open(result_filename, "w", encoding="utf-8") as res_file:
         res_file.write(result_text)
 
@@ -178,7 +179,7 @@ def generate_prompt_from_data(entry):
     """
     Nimmt ein Dictionary mit extrahierten Firmendaten entgegen und erstellt einen kompakten Prompt.
     """
-    # Schöne Formatierung der Felddaten (inkl. Adresse & Kapital)
+   
     def get_address(addr):
         return ", ".join(filter(None, [
             addr.get("street", ""), 
@@ -202,7 +203,7 @@ def generate_prompt_from_data(entry):
                         **Kapital:** {get_capital(entry.get('capital', {}))}  
                         **Zweck:** {entry.get('publicationText', '').strip()}"""
 
-    # Prompt-Template (minimalistisch, klar strukturiert)
+    # Prompt-Template 
     prompt = f"""Ich lade dir strukturierte Handelsregisterdaten (SHAB-Eintrag) zu einem Unternehmen hoch.
         Bitte:
         1. Extrahiere alle relevanten Firmendaten aus dem XML (Name, UID, Adresse, Zweck, Personen).
@@ -225,10 +226,12 @@ def generate_prompt_from_data(entry):
 
 
 def consultAI(prompt):
+    # local hosted model -> LM studio
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+        model="google/gemma-3-12b",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
     return response
 
@@ -237,12 +240,12 @@ def consultAI(prompt):
 ########################## MAIN SCRIPT ##########################
 
 init()
-soup = getSoupData()
-linkDataList = getLinkData(soup)
+# soup = getSoupData()
+# linkDataList = getLinkData(soup)
 
-writeLinkList(linkDataList)
+# writeLinkList(linkDataList)
 
-donwloadXML(linkDataList)
+# donwloadXML(linkDataList)
 
 promtDetails = prepareXMLforPrompt()
 
